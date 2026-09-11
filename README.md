@@ -73,6 +73,15 @@ anonymous sign-ins described above. The legacy Flask booking store is
 in-memory, so use the Supabase deployment path for persistent production
 bookings.
 
+The administrator login is available at `/adminportal.html` and from the
+**Admin Login** link in the main page header. Set these Render environment
+variables before using it:
+
+| Variable | Purpose |
+|---|---|
+| `ADMIN_PASSWORD` | Password required by the admin login form |
+| `SECRET_KEY` | Random value used to protect Flask sessions |
+
 ## Booking behavior
 
 The database computes the upcoming Monday-Sunday booking week using

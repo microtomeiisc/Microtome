@@ -22,17 +22,35 @@ DELETE /api/bookings/<booking_id>         -> cancel a booking
 """
 from flask import Flask, jsonify, request, send_from_directory
 from pathlib import Path
+import hmac
+import os
 import data
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
 app = Flask(__name__, static_folder=str(STATIC_DIR), static_url_path="")
+app.secret_key = os.environ.get("SECRET_KEY", "local-development-secret")
 
 
 # ---------- Frontend ----------
 @app.get("/health")
 def health():
     return jsonify({"status": "ok"})
+
+
+@app.post("/api/admin-auth")
+def admin_auth():
+    configured_password = os.environ.get("ADMIN_PASSWORD")
+    if not configured_password:
+        return jsonify({"error": "Admin password is not configured on the server."}), 503
+
+    payload = request.get_json(silent=True) or {}
+    supplied_password = payload.get("password", "")
+    if not isinstance(supplied_password, str) or not hmac.compare_digest(
+        supplied_password, configured_password
+    ):
+        return jsonify({"error": "Incorrect password."}), 401
+    return jsonify({"authenticated": True})
 
 
 @app.route("/")
