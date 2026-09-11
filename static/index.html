@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Histopathology Facility · IISc</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="app" id="top">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">IISc</div>
+      <div class="brand-name">Indian Institute of Science</div>
+    </div>
+    <nav class="nav">
+      <a class="nav-item active" data-icon="grid" href="#top">Dashboard</a>
+      <a class="nav-item" data-icon="calendar" href="#booking-area">Instrument Booking</a>
+      <a class="nav-item" data-icon="list" href="#my-bookings">My Bookings</a>
+      <a class="nav-item" data-icon="book" href="#protocol-documents">Guidelines</a>
+      <a class="nav-item" data-icon="help" href="#contact-support-link">Help &amp; Support</a>
+      <a class="nav-item admin-nav" id="admin-nav" data-icon="shield" href="adminportal.html">Admin Portal</a>
+    </nav>
+    <div class="contact-card">
+      <div class="contact-title">Contact Us</div>
+      <div class="contact-line">histopath@iisc.ac.in</div>
+      <div class="contact-line">+91 80 2293 XXXX</div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+
+    <header class="topbar">
+      <a class="site-brand" href="#top"><img class="iisc-logo" src="images/iisc-logo.png" alt="Indian Institute of Science"><span><strong>Histopathology Facility</strong><small>Indian Institute of Science</small></span></a>
+      <nav class="site-nav"><a class="active" href="#top">Home</a><a href="#booking-area">Services</a><a href="#protocol-documents">Guidelines</a><a href="#booking-area">Book a Slot</a><a href="#" id="contact-support-link">Contact</a></nav>
+      <div class="topbar-right">
+        <span class="login-link">IISc Facility</span>
+      </div>
+    </header>
+
+    <main class="content">
+
+      <section class="landing-hero">
+        <div class="landing-hero-copy">
+          <span class="landing-kicker">From tissue to insight</span>
+          <h2>Histopathology<br>Facility</h2>
+          <p>Advanced tissue processing, sectioning, staining and digital pathology support for research and academia at IISc.</p>
+        </div>
+      </section>
+
+      <section class="capability-strip">
+        <article><span class="capability-icon">&#9881;</span><h3>State-of-the-art Instruments</h3><p>Comprehensive histopathology workflow support</p></article>
+        <article><span class="capability-icon">&#128101;</span><h3>Expert Assistance</h3><p>Trained technical staff for reliable results</p></article>
+        <article><span class="capability-icon">&#10003;</span><h3>Quality &amp; Reproducibility</h3><p>Standardized protocols and best practices</p></article>
+        <article><span class="capability-icon">&#128214;</span><h3>Open to Academic &amp; Industrial Users</h3><p>Supporting research across disciplines</p></article>
+      </section>
+
+      <section class="workflow-section"><div class="section-kicker">How It Works</div><h2>Simple Steps to Get Started</h2><div class="workflow-list"><article><span>&#128197;</span><h3>Book a Slot</h3><p>Check availability and reserve your time</p></article><i>&rarr;</i><article><span>&#128196;</span><h3>Upload User Form</h3><p>Attach the completed facility user form</p></article><i>&rarr;</i><article><span>&#9881;</span><h3>Use the Facility</h3><p>Prepare and process samples with expert support</p></article><i>&rarr;</i><article><span>&#128196;</span><h3>Get Results</h3><p>High-quality sections and digital data</p></article></div></section>
+
+      <section class="admin-panel" id="admin-panel" hidden>
+        <div class="admin-heading">
+          <div>
+            <div class="eyebrow">Facility operations</div>
+            <h2>Admin Panel</h2>
+            <p>Monitor bookings, instrument demand, and today's schedule from one place.</p>
+          </div>
+          <button class="admin-refresh" id="admin-refresh" title="Refresh dashboard">&#8635; Refresh</button>
+        </div>
+
+        <div class="admin-stats">
+          <div class="admin-stat"><span class="admin-stat-icon blue">&#128197;</span><div><span>All bookings</span><strong id="admin-total">–</strong></div></div>
+          <div class="admin-stat"><span class="admin-stat-icon amber">&#9203;</span><div><span>Upcoming sessions</span><strong id="admin-upcoming">–</strong></div></div>
+          <div class="admin-stat"><span class="admin-stat-icon green">&#9989;</span><div><span>Confirmed users</span><strong id="admin-users">–</strong></div></div>
+          <div class="admin-stat"><span class="admin-stat-icon purple">&#9881;</span><div><span>Instruments in use</span><strong id="admin-in-use">–</strong></div></div>
+        </div>
+
+        <div class="admin-grid">
+          <section class="card admin-bookings-card">
+            <div class="card-head admin-card-head">
+              <div><h3>Booking register</h3><p class="field-hint">Review and manage facility sessions.</p></div>
+              <div class="admin-filters">
+                <input id="admin-search" class="field-input" type="search" placeholder="Search user, PI or ID">
+                <select id="admin-instrument-filter" class="field-select"><option value="all">All instruments</option></select>
+              </div>
+            </div>
+            <div class="admin-table-wrap">
+              <table class="admin-table">
+                <thead><tr><th>Booking</th><th>User</th><th>Instrument</th><th>Session</th><th>Status</th><th></th></tr></thead>
+                <tbody id="admin-bookings-table"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="card utilization-card">
+            <div class="card-head"><div><h3>Instrument utilization</h3><p class="field-hint">Booked sessions in the current week.</p></div></div>
+            <div class="utilization-list" id="admin-utilization"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow">Histopathology Facility</div>
+          <h2>Enabling Discovery<br>at the Cellular Level</h2>
+          <p>State-of-the-art instrumentation for tissue processing, sectioning, staining and imaging.</p>
+        </div>
+        <div class="hero-art" aria-label="Histology microscopy view">
+          <div class="hero-image-frame">
+            <img src="images/histology-hero.jpg" alt="Microscopy view of stained tissue" class="hero-micrograph">
+            <span class="hero-image-label">H&amp;E · Tissue section</span>
+            <span class="hero-image-scale">100 μm</span>
+          </div>
+          <span class="hero-image-spark spark-one"></span>
+          <span class="hero-image-spark spark-two"></span>
+        </div>
+        <div class="hero-steps">
+          <div class="hero-step"><span class="step-ic">&#128220;</span><div><b>Prepare</b><small>Process tissues with precision</small></div></div>
+          <div class="hero-step"><span class="step-ic">&#129517;</span><div><b>Section</b><small>For detailed analysis</small></div></div>
+          <div class="hero-step"><span class="step-ic">&#128167;</span><div><b>Stain</b><small>Reveal the unseen</small></div></div>
+          <div class="hero-step"><span class="step-ic">&#128247;</span><div><b>Image</b><small>High-resolution digital imaging</small></div></div>
+        </div>
+      </section>
+
+      <section class="stats" id="stats">
+        <div class="stat-card">
+          <div class="stat-ic blue">&#128197;</div>
+          <div><div class="stat-label">This Week's Bookings</div><div class="stat-value" id="stat-bookings">–</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-ic purple">&#128101;</div>
+          <div><div class="stat-label">Active Users</div><div class="stat-value" id="stat-users">–</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-ic amber">&#128196;</div>
+          <div><div class="stat-label">Pending Requests</div><div class="stat-value" id="stat-pending">–</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-ic green">&#9989;</div>
+          <div><div class="stat-label">Completed This Week</div><div class="stat-value" id="stat-completed">–</div></div>
+        </div>
+      </section>
+
+      <section class="banner" id="window-banner">
+        <span class="banner-ic">&#9432;</span>
+        <div>
+          <b id="banner-title">Checking booking window…</b>
+          <div id="banner-sub" class="banner-sub"></div>
+        </div>
+      </section>
+
+      <section class="grid-3" id="booking-area">
+
+        <div class="card instrument-card">
+          <div class="card-head"><h3><span class="step-badge">1</span> Select Instrument</h3></div>
+          <p class="field-hint" style="margin:-6px 0 12px;">Pick an instrument to see its own availability — each instrument has its own calendar.</p>
+          <div class="instrument-list" id="instrument-list"></div>
+        </div>
+
+        <div class="card week-card">
+          <div class="card-head">
+            <h3><span class="step-badge">2</span> Available Slots — <span id="slots-inst-name">…</span></h3>
+            <div class="week-range" id="week-range">–</div>
+          </div>
+          <div class="days" id="days"></div>
+
+          <div class="slots-head">
+            <h4>Available Slots</h4>
+            <div class="legend">
+              <span><i class="dot available"></i>Available</span>
+              <span><i class="dot booked"></i>Booked</span>
+              <span><i class="dot unavailable"></i>Unavailable</span>
+            </div>
+          </div>
+          <div class="slots-table" id="slots-table"></div>
+
+          <div class="user-form-block">
+            <div class="user-form-ic">&#128196;</div>
+            <div class="user-form-text">
+              <div class="user-form-title" id="user-form-title">Facility User Form</div>
+              <div class="user-form-sub">Required for every booking &middot; common to all instruments</div>
+            </div>
+            <div class="user-form-actions">
+              <a class="btn-view" id="user-form-view" href="#" target="_blank" rel="noopener">View</a>
+              <a class="btn-download-ic" id="user-form-download" href="#" download title="Download">&#8681;</a>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="card booking-card">
+          <div class="card-head"><h3><span class="step-badge">3</span> Book a Slot</h3></div>
+          <p class="field-hint" style="margin:-6px 0 12px;">Enter your details, choose an available slot, and attach the signed User Form. Booking is immediate — there is no approval queue.</p>
+
+          <div class="form-grid">
+            <div class="full">
+              <label class="field-label">Student / User Name <span class="req">*</span></label>
+              <input id="f-user" class="field-input" type="text" placeholder="Full name">
+            </div>
+            <div>
+              <label class="field-label">PI Name <span class="req">*</span></label>
+              <input id="f-pi" class="field-input" type="text" placeholder="Principal Investigator">
+            </div>
+            <div>
+              <label class="field-label">Phone Number <span class="req">*</span></label>
+              <input id="f-phone" class="field-input" type="tel" placeholder="10-digit number">
+            </div>
+            <div class="full">
+              <label class="field-label">Email ID <span class="req">*</span></label>
+              <input id="f-email" class="field-input" type="email" placeholder="name@iisc.ac.in">
+            </div>
+            <div class="full">
+              <label class="field-label">Institution / Department</label>
+              <input id="f-institution" class="field-input" type="text" placeholder="e.g. Dept. of Biological Sciences">
+            </div>
+            <div class="full">
+              <label class="field-label">Type of Specimen <span class="req">*</span></label>
+              <select id="f-specimen" class="field-select"></select>
+            </div>
+          </div>
+
+          <label class="field-label">Instrument</label>
+          <div class="field-value" id="sel-instrument">—</div>
+          <label class="field-label">Date</label>
+          <div class="field-value" id="sel-date">—</div>
+          <label class="field-label">Time Slot</label>
+          <select id="sel-slot" class="field-select"></select>
+
+          <label class="field-label">Attach Completed User Form <span class="req">*</span></label>
+          <div class="file-row">
+            <input id="f-form" class="field-input" type="file">
+          </div>
+          <div class="field-hint">Need the form? It's attached below the slot table on the left.</div>
+
+          <button class="btn btn-primary" id="btn-check">Check Availability</button>
+          <div class="status-box" id="avail-status" hidden></div>
+          <button class="btn btn-success" id="btn-book" disabled>Confirm Booking</button>
+
+          <div class="section-note">Booking is immediate and first-come, first-served. Each instrument keeps its own independent calendar, so booking one instrument does not affect the availability of any other.</div>
+        </div>
+
+      </section>
+
+      <section class="grid-3" style="margin-top:18px;">
+        <div class="card" style="grid-column:1/-1;">
+          <div class="card-head"><h3>My Bookings</h3></div>
+          <p class="field-hint" style="margin:-6px 0 4px;">Your confirmed sessions are listed here. You can cancel a booking before the session starts.</p>
+          <div class="bookings-list" id="my-bookings"></div>
+        </div>
+      </section>
+
+      <section class="grid-3" style="margin-top:18px;" id="protocol-documents">
+        <div class="card" style="grid-column:1/-1;">
+          <div class="card-head"><h3>Guidelines &amp; SOPs</h3></div>
+          <p class="field-hint" style="margin:-6px 0 12px;">All standard operating procedures for the facility are collected here. Review the relevant SOP before your session.</p>
+          <div class="sop-list" id="sop-list"></div>
+        </div>
+      </section>
+
+      <footer class="site-footer"><div class="footer-brand"><img class="iisc-logo footer-logo" src="images/iisc-logo.png" alt="Indian Institute of Science"><div><strong>Histopathology Facility</strong><small>Indian Institute of Science, Bengaluru - 560012</small></div></div><div><b>Quick Links</b><a href="#booking-area">Services</a><a href="#protocol-documents">Guidelines</a><a href="#booking-area">Book a Slot</a></div><div><b>Support</b><a href="#protocol-documents">User Manual</a><a href="#contact-support-link">Contact</a></div><div class="footer-bottom"><span class="footer-copyright">© <span id="footer-year"></span> Histopathology Facility, IISc. All rights reserved.</span><span>Science for a Healthier Tomorrow</span></div></footer>
+    </main>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal">
+    <div class="modal-ic">&#10003;</div>
+    <h4>Booking Confirmed</h4>
+    <p>Your slot is confirmed immediately. Please keep the Booking ID for future reference.</p>
+    <div class="modal-id" id="modal-booking-id">HP-0000</div>
+    <button class="btn btn-primary" id="modal-close" style="margin-top:0;">Done</button>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="contact-modal-backdrop">
+  <div class="modal contact-modal">
+    <h4>Contact Support</h4>
+    <p>Reach out to the facility team for booking or instrument-related help.</p>
+    <div class="contact-list" id="contact-list"></div>
+    <button class="btn btn-primary" id="contact-modal-close" style="margin-top:14px;">Close</button>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="user-form-modal-backdrop">
+  <div class="modal document-modal" role="dialog" aria-modal="true" aria-labelledby="user-form-modal-title">
+    <div class="document-modal-head"><h4 id="user-form-modal-title">Facility User Form</h4><button class="modal-close" id="user-form-modal-close" type="button" aria-label="Close user form">&times;</button></div>
+    <iframe id="user-form-frame" title="Facility User Form"></iframe>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  window.SUPABASE_CONFIG = {
+    url: "https://qgzltvmfdklxtoxqrfcy.supabase.co",
+    publishableKey: "sb_publishable_hq3GCMfm3gT13Q_bbiD_Bw_1LbCrJWq"
+  };
+</script>
+<script src="js/app.js"></script>
+</body>
+</html>
