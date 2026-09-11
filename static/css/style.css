@@ -214,6 +214,11 @@ ul{margin:0;padding-left:18px;}
 .field-label{display:block;font-size:11.5px;color:var(--text-dim);margin:12px 0 4px;font-weight:600;}
 .field-value{background:#f8f9fd;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:13px;}
 .field-select{width:100%;background:#f8f9fd;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:13px;color:var(--text);font-family:inherit;}
+.selected-slots{margin-top:12px;padding:10px;border:1px solid #e2bddc;border-radius:9px;background:#fbf0fa;color:var(--plum);font-size:11px;}
+.selected-slots-empty{color:var(--text-dim);}
+.selected-slot-list{display:flex;flex-direction:column;gap:5px;margin-top:7px;}
+.selected-slot-chip{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:5px 7px;border-radius:6px;background:#fff;color:var(--text);font-size:10.5px;}
+.selected-slot-chip button{border:0;background:none;color:var(--plum);font-size:17px;line-height:1;cursor:pointer;padding:0 2px;}
 
 .btn{width:100%;border:none;border-radius:10px;padding:11px;font-size:13.5px;font-weight:700;cursor:pointer;margin-top:14px;transition:opacity .15s;}
 .btn:disabled{opacity:.45;cursor:not-allowed;}

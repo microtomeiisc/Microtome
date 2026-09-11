@@ -193,7 +193,7 @@
 
         <div class="card booking-card">
           <div class="card-head"><h3><span class="step-badge">3</span> Book a Slot</h3></div>
-          <p class="field-hint" style="margin:-6px 0 12px;">Enter your details, choose an available slot, and attach the signed User Form. Booking is immediate — there is no approval queue.</p>
+          <p class="field-hint" style="margin:-6px 0 12px;">Select one or more available slots across any instruments, then enter your details once. Booking is immediate — there is no approval queue.</p>
 
           <div class="form-grid">
             <div class="full">
@@ -228,6 +228,7 @@
           <div class="field-value" id="sel-date">—</div>
           <label class="field-label">Time Slot</label>
           <select id="sel-slot" class="field-select"></select>
+          <div class="selected-slots" id="selected-slots"></div>
 
           <label class="field-label">Attach Completed User Form <span class="req">*</span></label>
           <div class="file-row">
@@ -235,9 +236,9 @@
           </div>
           <div class="field-hint">Need the form? It's attached below the slot table on the left.</div>
 
-          <button class="btn btn-primary" id="btn-check">Check Availability</button>
+          <button class="btn btn-primary" id="btn-check">Review Selected Slots</button>
           <div class="status-box" id="avail-status" hidden></div>
-          <button class="btn btn-success" id="btn-book" disabled>Confirm Booking</button>
+          <button class="btn btn-success" id="btn-book" disabled>Confirm Selected Bookings</button>
 
           <div class="section-note">Booking is immediate and first-come, first-served. Each instrument keeps its own independent calendar, so booking one instrument does not affect the availability of any other.</div>
         </div>

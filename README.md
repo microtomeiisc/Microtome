@@ -98,6 +98,8 @@ Asia/Kolkata time. Booking is open Friday 12:00 PM through Sunday 11:59 AM.
 The UI shows Monday-Saturday, while the database trigger validates the week,
 window, authenticated anonymous owner, valid instrument/specimen, and unique
 slot. CRUD operations are performed through the Supabase browser client.
+Users can select multiple available slots across one or more instruments and
+confirm them together in a single booking submission.
 
 The seven SOP PDFs and the common facility user form remain static assets under
 `static/docs/`; their metadata is seeded by the migration.

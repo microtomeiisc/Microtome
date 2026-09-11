@@ -15,6 +15,7 @@ const state = {
   selectedInstrument: null,
   selectedDate: null,
   selectedSlot: null,
+  selectedBookings: [],
   availability: {},
   availabilityChecked: false,
   myEmail: "",
@@ -79,6 +80,28 @@ function escapeHtml(value) {
     '"': "&quot;",
     "'": "&#39;",
   }[character]));
+}
+
+function bookingKey(instrumentId, date, slot) {
+  return `${instrumentId}|${date}|${slot}`;
+}
+
+function selectedBooking(instrumentId, date, slot) {
+  return state.selectedBookings.some(
+    (booking) => bookingKey(booking.instrumentId, booking.date, booking.slot) === bookingKey(instrumentId, date, slot)
+  );
+}
+
+function toggleSelectedBooking(instrumentId, date, slot) {
+  const key = bookingKey(instrumentId, date, slot);
+  const index = state.selectedBookings.findIndex(
+    (booking) => bookingKey(booking.instrumentId, booking.date, booking.slot) === key
+  );
+  if (index >= 0) {
+    state.selectedBookings.splice(index, 1);
+  } else {
+    state.selectedBookings.push({ instrumentId, date, slot });
+  }
 }
 
 async function loadInitial() {
@@ -210,7 +233,7 @@ function renderSlotsTable() {
     days.forEach((d) => {
       const availability = state.availability[d]?.[slot] || { status: "available", userName: "" };
       const status = availability.status;
-      const isSel = d === state.selectedDate && slot === state.selectedSlot;
+      const isSel = selectedBooking(state.selectedInstrument, d, slot);
       const label = status === "booked"
         ? `Booked${availability.userName ? `<small>${escapeHtml(availability.userName)}</small>` : ""}`
         : "Available";
@@ -225,6 +248,7 @@ function renderSlotsTable() {
     pill.addEventListener("click", () => {
       state.selectedDate = pill.dataset.date;
       state.selectedSlot = pill.dataset.slot;
+      toggleSelectedBooking(state.selectedInstrument, state.selectedDate, state.selectedSlot);
       state.availabilityChecked = false;
       renderDays();
       renderSlotsTable();
@@ -251,13 +275,31 @@ function renderBookingPanel() {
     $("#btn-book").disabled = true;
   };
 
+  const selectedEl = $("#selected-slots");
+  selectedEl.innerHTML = state.selectedBookings.length
+    ? `<strong>${state.selectedBookings.length} slot${state.selectedBookings.length === 1 ? "" : "s"} selected</strong><div class="selected-slot-list">${state.selectedBookings.map((booking) => {
+      const bookingInstrument = state.instruments.find((item) => item.id === booking.instrumentId);
+      const day = fmtDay(booking.date);
+      return `<span class="selected-slot-chip">${escapeHtml(bookingInstrument?.name || booking.instrumentId)} · ${day.dow} ${day.dom} ${day.mon} · ${escapeHtml(booking.slot)} <button type="button" data-key="${escapeHtml(bookingKey(booking.instrumentId, booking.date, booking.slot))}" aria-label="Remove selected slot">&times;</button></span>`;
+    }).join("")}</div>`
+    : `<span class="selected-slots-empty">Click available cells to add slots from one or more instruments.</span>`;
+  selectedEl.querySelectorAll("button").forEach((button) => {
+    button.addEventListener("click", () => {
+      const index = state.selectedBookings.findIndex((booking) => bookingKey(booking.instrumentId, booking.date, booking.slot) === button.dataset.key);
+      if (index >= 0) state.selectedBookings.splice(index, 1);
+      state.availabilityChecked = false;
+      renderSlotsTable();
+      renderBookingPanel();
+    });
+  });
+
   const specimenSelect = $("#f-specimen");
   if (!specimenSelect.options.length) {
     specimenSelect.innerHTML = state.specimenTypes.map((t) => `<option value="${t}">${t}</option>`).join("");
   }
 
   $("#avail-status").hidden = true;
-  $("#btn-book").disabled = true;
+  $("#btn-book").disabled = state.selectedBookings.length === 0;
 }
 
 async function refreshBookingWindow() {
@@ -388,25 +430,23 @@ function wireBookingButtons() {
       toast("The booking window is currently closed.");
       return;
     }
-    const selectedAvailability = state.availability[state.selectedDate]?.[state.selectedSlot];
-    const status = selectedAvailability?.status || "available";
     const box = $("#avail-status");
     box.hidden = false;
-    if (status === "booked") {
+    if (!state.selectedBookings.length) {
       box.className = "status-box no";
-      box.textContent = "This slot is already booked for this instrument. Please choose another.";
+      box.textContent = "Select at least one available slot from the calendar.";
       $("#btn-book").disabled = true;
     } else {
       box.className = "status-box ok";
-      box.textContent = "Slot available. Fill in your details above and confirm.";
+      box.textContent = `${state.selectedBookings.length} slot${state.selectedBookings.length === 1 ? "" : "s"} ready. Fill in your details and confirm all bookings together.`;
       $("#btn-book").disabled = false;
       state.availabilityChecked = true;
     }
   });
 
   $("#btn-book").addEventListener("click", async () => {
-    if (!state.availabilityChecked || !state.bookingWindowOpen) {
-      toast("The booking window is currently closed or the slot was not checked.");
+    if (!state.availabilityChecked || !state.bookingWindowOpen || !state.selectedBookings.length) {
+      toast("Select your slots and review them before confirming.");
       return;
     }
     const missing = validateForm();
@@ -415,26 +455,31 @@ function wireBookingButtons() {
       return;
     }
     const email = $("#f-email").value.trim();
-    const result = await getClient().from("bookings").insert({
+    const commonBooking = {
       user_name: $("#f-user").value.trim(),
       pi_name: $("#f-pi").value.trim(),
       phone: $("#f-phone").value.trim(),
       email,
       institution: $("#f-institution").value.trim(),
       specimen_type: $("#f-specimen").value,
-      instrument_id: state.selectedInstrument,
-      date: state.selectedDate,
-      slot: state.selectedSlot,
       form_filename: $("#f-form").files[0].name,
-    }).select("*").single();
+    };
+    const payload = state.selectedBookings.map((booking) => ({
+      ...commonBooking,
+      instrument_id: booking.instrumentId,
+      date: booking.date,
+      slot: booking.slot,
+    }));
+    const result = await getClient().from("bookings").insert(payload).select("*");
     if (!result.error) {
-      const record = result.data;
+      const records = result.data;
       state.myEmail = email;
+      state.selectedBookings = [];
       state.availabilityChecked = false;
       await refreshAvailability();
       renderBookingPanel();
       await Promise.all([refreshStats(), refreshMyBookings()]);
-      showModal(record.booking_id);
+      showModal(records.map((record) => record.booking_id).join(", "));
     } else {
       toast(result.error.message || "Could not book this slot.");
       await refreshAvailability();
