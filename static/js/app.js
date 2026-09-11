@@ -183,7 +183,10 @@ async function refreshAvailability() {
   state.availability = {};
   rows.forEach((row) => {
     if (!state.availability[row.date]) state.availability[row.date] = {};
-    state.availability[row.date][row.slot] = row.status;
+    state.availability[row.date][row.slot] = {
+      status: row.status,
+      userName: row.user_name || "",
+    };
   });
   const inst = state.instruments.find((i) => i.id === state.selectedInstrument);
   $("#slots-inst-name").textContent = inst ? inst.name : "";
@@ -205,9 +208,13 @@ function renderSlotsTable() {
   slots.forEach((slot) => {
     html += `<div class="slot-row"><div class="slot-cell">${slot.replace(" - ", " – ")}</div>`;
     days.forEach((d) => {
-      const status = state.availability[d]?.[slot] || "available";
+      const availability = state.availability[d]?.[slot] || { status: "available", userName: "" };
+      const status = availability.status;
       const isSel = d === state.selectedDate && slot === state.selectedSlot;
-      html += `<div class="slot-cell"><div class="pill ${status}${isSel ? " selected" : ""}" data-date="${d}" data-slot="${slot}">${status === "booked" ? "Booked" : "Available"}</div></div>`;
+      const label = status === "booked"
+        ? `Booked${availability.userName ? `<small>${escapeHtml(availability.userName)}</small>` : ""}`
+        : "Available";
+      html += `<div class="slot-cell"><div class="pill ${status}${isSel ? " selected" : ""}" data-date="${d}" data-slot="${slot}">${label}</div></div>`;
     });
     html += `</div>`;
   });
@@ -381,7 +388,8 @@ function wireBookingButtons() {
       toast("The booking window is currently closed.");
       return;
     }
-    const status = state.availability[state.selectedDate]?.[state.selectedSlot] || "available";
+    const selectedAvailability = state.availability[state.selectedDate]?.[state.selectedSlot];
+    const status = selectedAvailability?.status || "available";
     const box = $("#avail-status");
     box.hidden = false;
     if (status === "booked") {

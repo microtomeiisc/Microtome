@@ -25,6 +25,8 @@ backend is retained for the original local/demo API, but is not used by
 
 1. Open the Supabase project and run [`supabase/schema.sql`](supabase/schema.sql)
    in the SQL editor (or apply it with the Supabase CLI).
+   Re-run it after updates so the availability grid can show the user name on
+   booked slots.
 2. Under **Authentication → Providers**, enable **Anonymous Sign-Ins**.
    Visitors are signed in anonymously before metadata or booking access; the
    UI reports a clear error if anonymous auth is unavailable.

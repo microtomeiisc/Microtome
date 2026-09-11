@@ -188,8 +188,9 @@ create trigger bookings_validate_window
 before insert or update on public.bookings
 for each row execute function public.validate_booking_window();
 
+drop function if exists public.get_booking_availability(text, date);
 create or replace function public.get_booking_availability(p_instrument_id text, p_week_start date)
-returns table(date date, slot text, status text)
+returns table(date date, slot text, status text, user_name text)
 language sql
 stable
 security definer
@@ -199,7 +200,8 @@ as $$
     values ('09:00 - 11:00'), ('11:00 - 13:00'), ('14:00 - 16:00'), ('16:00 - 18:00')
   )
   select days::date, slots.slot,
-         case when bookings.id is null then 'available' else 'booked' end
+         case when bookings.id is null then 'available' else 'booked' end,
+         case when bookings.id is null then null else bookings.user_name end
   from generate_series(p_week_start, p_week_start + 6, interval '1 day') as dates(days)
   cross join slots
   left join public.bookings
