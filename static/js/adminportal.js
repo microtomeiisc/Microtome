@@ -20,7 +20,11 @@ function setSelectOptions(selector, values, selected) {
 
 async function loadPortal() {
   const [bookings, instruments, week, specimenTypes] = await Promise.all([
-    fetch(`${API}/bookings`).then((response) => response.json()),
+    fetch(`${API}/admin/bookings`).then(async (response) => {
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "Could not load bookings.");
+      return payload;
+    }),
     fetch(`${API}/instruments`).then((response) => response.json()),
     fetch(`${API}/week`).then((response) => response.json()),
     fetch(`${API}/specimen-types`).then((response) => response.json()),

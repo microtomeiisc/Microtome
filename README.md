@@ -81,6 +81,13 @@ variables before using it:
 |---|---|
 | `ADMIN_PASSWORD` | Password required by the admin login form |
 | `SECRET_KEY` | Random value used to protect Flask sessions |
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service-role key, stored only in Render |
+
+The service-role key must never be placed in `static/` or exposed to the
+browser. The admin portal uses it only through the protected Flask endpoints
+under `/api/admin/bookings`, which read and modify the real Supabase
+`public.bookings` table.
 
 ## Booking behavior
 

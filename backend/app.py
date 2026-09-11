@@ -20,16 +20,49 @@ POST   /api/bookings                      -> create a booking
                 instrument_id, date, slot, form_filename}
 DELETE /api/bookings/<booking_id>         -> cancel a booking
 """
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory, session
 from pathlib import Path
 import hmac
 import os
+from functools import wraps
+
+import requests
 import data
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
 app = Flask(__name__, static_folder=str(STATIC_DIR), static_url_path="")
 app.secret_key = os.environ.get("SECRET_KEY", "local-development-secret")
+
+
+def _supabase_request(method, path, **kwargs):
+    supabase_url = os.environ.get("SUPABASE_URL")
+    service_role_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+    if not supabase_url or not service_role_key:
+        raise RuntimeError("Supabase admin credentials are not configured on the server.")
+    headers = {
+        "apikey": service_role_key,
+        "Authorization": f"Bearer {service_role_key}",
+        **kwargs.pop("headers", {}),
+    }
+    response = requests.request(
+        method,
+        f"{supabase_url.rstrip('/')}/rest/v1/{path}",
+        headers=headers,
+        timeout=15,
+        **kwargs,
+    )
+    response.raise_for_status()
+    return response
+
+
+def admin_required(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if not session.get("admin_authenticated"):
+            return jsonify({"error": "Admin authentication required."}), 401
+        return view(*args, **kwargs)
+    return wrapped
 
 
 # ---------- Frontend ----------
@@ -50,6 +83,7 @@ def admin_auth():
         supplied_password, configured_password
     ):
         return jsonify({"error": "Incorrect password."}), 401
+    session["admin_authenticated"] = True
     return jsonify({"authenticated": True})
 
 
@@ -108,6 +142,74 @@ def booking_window():
 def bookings():
     email = request.args.get("email")
     return jsonify(data.list_bookings(email))
+
+
+@app.get("/api/admin/bookings")
+@admin_required
+def admin_bookings():
+    try:
+        response = _supabase_request(
+            "GET",
+            "bookings?select=*&order=date.asc,slot.asc",
+        )
+    except (requests.RequestException, RuntimeError) as error:
+        return jsonify({"error": f"Could not load Supabase bookings: {error}"}), 502
+
+    return jsonify([
+        {
+            **booking,
+            "user": booking["user_name"],
+        }
+        for booking in response.json()
+    ])
+
+
+@app.patch("/api/admin/bookings/<booking_id>")
+@admin_required
+def admin_update_booking(booking_id):
+    payload = request.get_json(silent=True) or {}
+    update = {
+        "user_name": payload.get("user", "").strip(),
+        "pi_name": payload.get("pi_name", "").strip(),
+        "phone": payload.get("phone", "").strip(),
+        "email": payload.get("email", "").strip(),
+        "institution": payload.get("institution", "").strip(),
+        "specimen_type": payload.get("specimen_type", "").strip(),
+        "instrument_id": payload.get("instrument_id", "").strip(),
+        "date": payload.get("date", "").strip(),
+        "slot": payload.get("slot", "").strip(),
+        "form_filename": payload.get("form_filename", "").strip(),
+    }
+    if any(not value for value in update.values()):
+        return jsonify({"error": "All booking fields are required."}), 400
+    try:
+        response = _supabase_request(
+            "PATCH",
+            f"bookings?booking_id=eq.{booking_id}",
+            json=update,
+            headers={"Prefer": "return=representation"},
+        )
+    except (requests.RequestException, RuntimeError) as error:
+        return jsonify({"error": f"Could not update Supabase booking: {error}"}), 502
+    if not response.json():
+        return jsonify({"error": "Booking not found."}), 404
+    return jsonify(response.json()[0])
+
+
+@app.delete("/api/admin/bookings/<booking_id>")
+@admin_required
+def admin_delete_booking(booking_id):
+    try:
+        response = _supabase_request(
+            "DELETE",
+            f"bookings?booking_id=eq.{booking_id}",
+            headers={"Prefer": "return=representation"},
+        )
+    except (requests.RequestException, RuntimeError) as error:
+        return jsonify({"error": f"Could not delete Supabase booking: {error}"}), 502
+    if not response.json():
+        return jsonify({"error": "Booking not found."}), 404
+    return jsonify({"cancelled": booking_id})
 
 
 @app.post("/api/bookings")
