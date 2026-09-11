@@ -277,6 +277,12 @@ ul{margin:0;padding-left:18px;}
 .modal h4{margin:0 0 6px;font-size:17px;}
 .modal p{margin:0 0 16px;color:var(--text-dim);font-size:13px;}
 .modal .modal-id{font-size:15px;font-weight:700;color:var(--blue-700);background:#eef4ff;border-radius:9px;padding:9px;margin-bottom:16px;}
+.document-modal{max-width:900px;width:min(92vw,900px);height:min(88vh,820px);padding:20px;display:flex;flex-direction:column;text-align:left;}
+.document-modal-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px;}
+.document-modal-head h4{margin:0;font-size:19px;}
+.modal-close{width:32px;height:32px;border:1px solid var(--line);border-radius:9px;background:#f8f9fd;color:var(--text);font-size:20px;line-height:1;cursor:pointer;}
+.modal-close:hover{background:var(--lavender);color:var(--plum);}
+#user-form-frame{display:block;width:100%;flex:1;min-height:0;border:1px solid var(--line);border-radius:8px;background:#fff;}
 
 /* ---- Protocol documents / SOPs ---- */
 .sop-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;}
@@ -373,3 +379,4 @@ body{font-family:"Avenir Next","Helvetica Neue",Arial,sans-serif;background:#fff
 .site-footer{grid-template-columns:2fr 1fr 1fr;}.footer-brand{align-items:center;}
 .site-footer{background:linear-gradient(90deg,rgba(80,12,77,.9),rgba(107,25,96,.9)),url('../images/histology-hero.jpg') center/cover;}
 .footer-bottom .footer-copyright{display:inline;}.footer-bottom #footer-year{display:inline;}
+@media(max-width:700px){.document-modal{width:94vw;height:86vh;padding:14px;}.document-modal-head{margin-bottom:10px;}.document-modal-head h4{font-size:16px;}}
