@@ -30,6 +30,11 @@ app = Flask(__name__, static_folder=str(STATIC_DIR), static_url_path="")
 
 
 # ---------- Frontend ----------
+@app.get("/health")
+def health():
+    return jsonify({"status": "ok"})
+
+
 @app.route("/")
 def index():
     return send_from_directory(STATIC_DIR, "index.html")

@@ -54,6 +54,25 @@ python app.py
 Then open **http://localhost:5000**. The page still uses Supabase, so the
 project must be configured as above even when Flask serves the files.
 
+## Render deployment
+
+This repository includes [`render.yaml`](render.yaml) for a Render Web Service.
+Create a new Blueprint from the GitHub repository, or create a Python Web
+Service manually with these settings:
+
+| Setting | Value |
+|---|---|
+| Root Directory | `backend` |
+| Build Command | `pip install -r requirements.txt` |
+| Start Command | `gunicorn app:app --bind 0.0.0.0:$PORT` |
+| Health Check Path | `/health` |
+
+After deployment, open the Render URL and verify `/health` returns
+`{"status":"ok"}`. The frontend still requires the Supabase project and
+anonymous sign-ins described above. The legacy Flask booking store is
+in-memory, so use the Supabase deployment path for persistent production
+bookings.
+
 ## Booking behavior
 
 The database computes the upcoming Monday-Sunday booking week using
