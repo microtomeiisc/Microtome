@@ -422,14 +422,14 @@ body{font-family:"Avenir Next","Helvetica Neue",Arial,sans-serif;background:#fff
 }
 
 @media (max-width:700px){
-  .topbar{height:auto;min-height:0;padding:12px 16px 10px;gap:10px;}
+  .topbar{display:grid;grid-template-columns:minmax(0,1fr) auto;height:auto;min-height:0;padding:12px 16px 10px;gap:10px 12px;align-items:center;}
   .site-brand{min-width:0;flex:1;gap:7px;}
   .iisc-logo{width:36px;height:36px;}
   .site-brand strong{font-size:12px;}
   .site-brand small{font-size:8px;}
   .topbar-right{flex-shrink:0;}
   .login-link{padding:10px 13px;min-height:38px;font-size:9.5px;border-radius:10px;}
-  .site-nav{order:3;flex:0 0 100%;width:100%;min-width:0;overflow-x:auto;justify-content:flex-start;gap:22px;padding:0 2px;border-top:1px solid #f1eaf1;}
+  .site-nav{grid-column:1/-1;order:3;display:flex;flex:0 0 auto;width:100%;min-width:0;overflow-x:auto;justify-content:flex-start;gap:22px;padding:0 2px;border-top:1px solid #f1eaf1;}
   .site-nav a{font-size:10px;padding:11px 0 9px;}
   .site-nav a.active::after{bottom:0;}
   .landing-hero{min-height:430px;padding:48px 24px 58px;align-items:flex-end;}
