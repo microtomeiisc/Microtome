@@ -55,12 +55,18 @@ create table if not exists public.bookings (
   specimen_type text not null references public.specimen_types(name),
   instrument_id text not null references public.instruments(id),
   date date not null,
-  slot text not null check (slot in ('09:00 - 11:00', '11:00 - 13:00', '14:00 - 16:00', '16:00 - 18:00')),
+  slot text not null check (slot in ('09:00 - 11:00', '11:00 - 13:00', '14:00 - 16:00', '16:00 - 18:00', '18:00 - 20:00')),
   form_filename text not null,
   status text not null default 'booked' check (status in ('booked', 'completed', 'cancelled')),
   created_at timestamptz not null default now(),
   unique (instrument_id, date, slot)
 );
+
+-- Keep an existing deployment compatible when this migration is re-run.
+alter table public.bookings drop constraint if exists bookings_slot_check;
+alter table public.bookings
+  add constraint bookings_slot_check
+  check (slot in ('09:00 - 11:00', '11:00 - 13:00', '14:00 - 16:00', '16:00 - 18:00', '18:00 - 20:00'));
 
 create index if not exists bookings_created_by_idx on public.bookings(created_by);
 create index if not exists bookings_week_idx on public.bookings(date, instrument_id, slot);
@@ -197,7 +203,7 @@ security definer
 set search_path = public
 as $$
   with slots(slot) as (
-    values ('09:00 - 11:00'), ('11:00 - 13:00'), ('14:00 - 16:00'), ('16:00 - 18:00')
+    values ('09:00 - 11:00'), ('11:00 - 13:00'), ('14:00 - 16:00'), ('16:00 - 18:00'), ('18:00 - 20:00')
   )
   select days::date, slots.slot,
          case when bookings.id is null then 'available' else 'booked' end,

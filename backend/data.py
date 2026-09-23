@@ -76,7 +76,7 @@ SPECIMEN_TYPES = [
     "Other (specify in notes)",
 ]
 
-TIME_SLOTS = ["09:00 - 11:00", "11:00 - 13:00", "14:00 - 16:00", "16:00 - 18:00"]
+TIME_SLOTS = ["09:00 - 11:00", "11:00 - 13:00", "14:00 - 16:00", "16:00 - 18:00", "18:00 - 20:00"]
 
 FACILITY_TIMEZONE = timezone(timedelta(hours=5, minutes=30))
 

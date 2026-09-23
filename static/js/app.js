@@ -219,7 +219,7 @@ async function refreshAvailability() {
 function renderSlotsTable() {
   const el = $("#slots-table");
   const days = state.weekDays.slice(0, 6); // Mon–Sat
-  const slots = ["09:00 - 11:00", "11:00 - 13:00", "14:00 - 16:00", "16:00 - 18:00"];
+  const slots = ["09:00 - 11:00", "11:00 - 13:00", "14:00 - 16:00", "16:00 - 18:00", "18:00 - 20:00"];
 
   let html = `<div class="slot-row head"><div class="slot-cell">Time</div>${days
     .map((d) => {
@@ -265,7 +265,7 @@ function renderBookingPanel() {
   $("#sel-date").textContent = state.selectedDate ? `${dom} ${mon} (${dow})` : "—";
 
   const slotSelect = $("#sel-slot");
-  const slots = ["09:00 - 11:00", "11:00 - 13:00", "14:00 - 16:00", "16:00 - 18:00"];
+  const slots = ["09:00 - 11:00", "11:00 - 13:00", "14:00 - 16:00", "16:00 - 18:00", "18:00 - 20:00"];
   slotSelect.innerHTML = slots.map((s) => `<option value="${s}" ${s === state.selectedSlot ? "selected" : ""}>${s}</option>`).join("");
   if (!state.selectedSlot) state.selectedSlot = slots[0];
   slotSelect.onchange = () => {

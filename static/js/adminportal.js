@@ -1,7 +1,7 @@
 const API = "/api";
 const state = { bookings: [], instruments: [], week: [], specimenTypes: [], editing: null };
 const $ = (selector) => document.querySelector(selector);
-const slots = ["09:00 - 11:00", "11:00 - 13:00", "14:00 - 16:00", "16:00 - 18:00"];
+const slots = ["09:00 - 11:00", "11:00 - 13:00", "14:00 - 16:00", "16:00 - 18:00", "18:00 - 20:00"];
 
 function toast(message) {
   const element = $("#toast");
