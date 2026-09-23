@@ -3,7 +3,7 @@ In-memory data store for the IISc Histopathology Facility booking system.
 Swap this module for a real database (SQLite/Postgres) in production —
 the API layer in app.py only talks to the functions defined here.
 """
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 import itertools
 
 _id_counter = itertools.count(1000)
@@ -78,8 +78,15 @@ SPECIMEN_TYPES = [
 
 TIME_SLOTS = ["09:00 - 11:00", "11:00 - 13:00", "14:00 - 16:00", "16:00 - 18:00"]
 
-WEEK_START = date(2025, 6, 23)  # Monday of the sample week shown in the template
-WEEK_DAYS = [WEEK_START + timedelta(days=i) for i in range(7)]  # Mon..Sun
+FACILITY_TIMEZONE = timezone(timedelta(hours=5, minutes=30))
+
+
+def _booking_week_days():
+    """Return the upcoming Monday-Sunday booking week in facility time."""
+    today = datetime.now(FACILITY_TIMEZONE).date()
+    monday = today - timedelta(days=today.weekday())
+    week_start = monday + timedelta(days=7)
+    return [week_start + timedelta(days=i) for i in range(7)]
 
 # Bookings are independent per instrument: each instrument has its own
 # calendar, so booking Instrument A for a date+slot has no effect on
@@ -117,9 +124,10 @@ def _create(instrument_id, iso_date, slot, user, pi_name, phone, email, institut
 
 
 def seed():
-    fri = WEEK_DAYS[4].isoformat()
-    sat = WEEK_DAYS[5].isoformat()
-    mon = WEEK_DAYS[0].isoformat()
+    week_days = _booking_week_days()
+    fri = week_days[4].isoformat()
+    sat = week_days[5].isoformat()
+    mon = week_days[0].isoformat()
     seed_data = [
         ("leica-tissue-processor", fri, "14:00 - 16:00", "M. Rao", "S. Chandrasekhar"),
         ("zeiss-slide-scanner", sat, "09:00 - 11:00", "P. Iyer", "N. Bhattacharya"),
@@ -155,13 +163,13 @@ def get_specimen_types():
 
 
 def get_week_days():
-    return [d.isoformat() for d in WEEK_DAYS]
+    return [d.isoformat() for d in _booking_week_days()]
 
 
 def get_availability(instrument_id):
     """Return {date_iso: {slot: status}} for ONE instrument's own calendar."""
     grid = {}
-    for d in WEEK_DAYS:
+    for d in _booking_week_days():
         iso = d.isoformat()
         grid[iso] = {}
         for slot in TIME_SLOTS:
@@ -171,7 +179,7 @@ def get_availability(instrument_id):
 
 def is_booking_window_open(now=None):
     """Booking window: Friday 12:00 PM through Sunday 11:59 AM."""
-    now = now or __import__("datetime").datetime.now()
+    now = now or datetime.now(FACILITY_TIMEZONE)
     weekday = now.weekday()  # Mon=0 ... Sun=6
     if weekday == 4:  # Friday
         return now.hour >= 12
@@ -197,7 +205,7 @@ def create_booking(payload):
 
     if instrument_id not in {i["id"] for i in INSTRUMENTS}:
         return None, "Unknown instrument."
-    if iso_date not in {d.isoformat() for d in WEEK_DAYS}:
+    if iso_date not in {d.isoformat() for d in _booking_week_days()}:
         return None, "Date is outside the current booking week."
     if slot not in TIME_SLOTS:
         return None, "Unknown time slot."
