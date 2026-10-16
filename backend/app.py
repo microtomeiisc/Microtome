@@ -15,19 +15,23 @@ GET    /api/week                          -> the 7 dates of the current booking 
 GET    /api/availability/<instrument_id>  -> {date: {slot: "available"|"booked"}}
 GET    /api/booking-window                -> {"open": bool, "message": str}
 GET    /api/bookings?email=<email>        -> list bookings (optionally filtered by email)
+GET    /api/admin/bookings/<id>/user-form -> download a booking's attached form (admin only)
 POST   /api/bookings                      -> create a booking
         body: {user, pi_name, phone, email, institution, specimen_type,
                 instrument_id, date, slot, form_filename}
 DELETE /api/bookings/<booking_id>         -> cancel a booking
 """
-from flask import Flask, jsonify, request, send_from_directory, session
+from flask import Flask, jsonify, request, send_file, send_from_directory, session
+from io import BytesIO
 from pathlib import Path
 import hmac
 import os
 from functools import wraps
+from urllib.parse import quote
 
 import requests
 import data
+from werkzeug.utils import secure_filename
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
@@ -162,6 +166,62 @@ def admin_bookings():
         }
         for booking in response.json()
     ])
+
+
+@app.get("/api/admin/bookings/<booking_id>/user-form")
+@admin_required
+def admin_booking_user_form(booking_id):
+    try:
+        booking_response = _supabase_request(
+            "GET",
+            "bookings",
+            params={
+                "select": "form_filename,form_storage_path",
+                "booking_id": f"eq.{booking_id}",
+            },
+        )
+    except (requests.RequestException, RuntimeError) as error:
+        return jsonify({"error": f"Could not load booking form details: {error}"}), 502
+
+    bookings = booking_response.json()
+    if not bookings:
+        return jsonify({"error": "Booking not found."}), 404
+    booking = bookings[0]
+    storage_path = booking.get("form_storage_path")
+    if not storage_path:
+        return jsonify({"error": "No uploaded user form is stored for this booking."}), 404
+
+    supabase_url = os.environ.get("SUPABASE_URL")
+    service_role_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+    if not supabase_url or not service_role_key:
+        return jsonify({"error": "Supabase admin credentials are not configured on the server."}), 503
+
+    storage_url = (
+        f"{supabase_url.rstrip('/')}/storage/v1/object/"
+        f"booking-user-forms/{quote(storage_path, safe='/')}"
+    )
+    try:
+        response = requests.get(
+            storage_url,
+            headers={
+                "apikey": service_role_key,
+                "Authorization": f"Bearer {service_role_key}",
+            },
+            timeout=30,
+        )
+        if response.status_code == 404:
+            return jsonify({"error": "The uploaded user form could not be found."}), 404
+        response.raise_for_status()
+    except requests.RequestException as error:
+        return jsonify({"error": f"Could not download the uploaded user form: {error}"}), 502
+
+    download_name = secure_filename(booking.get("form_filename") or "") or "user-form"
+    return send_file(
+        BytesIO(response.content),
+        mimetype=response.headers.get("Content-Type", "application/octet-stream"),
+        as_attachment=True,
+        download_name=download_name,
+    )
 
 
 @app.patch("/api/admin/bookings/<booking_id>")

@@ -420,7 +420,8 @@ function validateForm() {
   const missing = Object.entries(required)
     .filter(([, v]) => !v)
     .map(([k]) => k);
-  if (!$("#f-form").files.length) missing.push("Attached User Form");
+  const formFile = $("#f-form").files[0];
+  if (!formFile || !formFile.name.trim()) missing.push("Attached User Form");
   return missing;
 }
 
@@ -455,6 +456,24 @@ function wireBookingButtons() {
       return;
     }
     const email = $("#f-email").value.trim();
+    const formFile = $("#f-form").files[0];
+    const client = getClient();
+    const { data: sessionData, error: sessionError } = await client.auth.getSession();
+    if (sessionError || !sessionData.session) {
+      toast(`Could not verify booking session${sessionError ? `: ${sessionError.message}` : "."}`);
+      return;
+    }
+    const formStoragePath = `${sessionData.session.user.id}/${crypto.randomUUID()}`;
+    const { error: uploadError } = await client.storage
+      .from("booking-user-forms")
+      .upload(formStoragePath, formFile, {
+        contentType: formFile.type || "application/octet-stream",
+        upsert: false,
+      });
+    if (uploadError) {
+      toast(`Could not upload the user form: ${uploadError.message}`);
+      return;
+    }
     const commonBooking = {
       user_name: $("#f-user").value.trim(),
       pi_name: $("#f-pi").value.trim(),
@@ -462,7 +481,8 @@ function wireBookingButtons() {
       email,
       institution: $("#f-institution").value.trim(),
       specimen_type: $("#f-specimen").value,
-      form_filename: $("#f-form").files[0].name,
+      form_filename: formFile.name.trim(),
+      form_storage_path: formStoragePath,
     };
     const payload = state.selectedBookings.map((booking) => ({
       ...commonBooking,
@@ -470,7 +490,7 @@ function wireBookingButtons() {
       date: booking.date,
       slot: booking.slot,
     }));
-    const result = await getClient().from("bookings").insert(payload).select("*");
+    const result = await client.from("bookings").insert(payload).select("*");
     if (!result.error) {
       const records = result.data;
       state.myEmail = email;
@@ -482,6 +502,13 @@ function wireBookingButtons() {
       showModal(records.map((record) => record.booking_id).join(", "));
     } else {
       toast(result.error.message || "Could not book this slot.");
+      const { error: cleanupError } = await client.storage
+        .from("booking-user-forms")
+        .remove([formStoragePath]);
+      if (cleanupError) {
+        console.error("Could not remove an unused uploaded user form", cleanupError);
+        toast("Booking failed and the uploaded form could not be cleaned up. Contact facility support.");
+      }
       await refreshAvailability();
       renderBookingPanel();
     }

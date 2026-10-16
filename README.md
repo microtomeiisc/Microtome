@@ -25,8 +25,9 @@ backend is retained for the original local/demo API, but is not used by
 
 1. Open the Supabase project and run [`supabase/schema.sql`](supabase/schema.sql)
    in the SQL editor (or apply it with the Supabase CLI).
-   Re-run it after updates so the availability grid can show the user name on
-   booked slots.
+   It also enforces a nonblank User Form filename, creates the private
+   `booking-user-forms` Storage bucket, and adds a storage path to bookings.
+   Re-run it to apply updates to an existing project.
 2. Under **Authentication → Providers**, enable **Anonymous Sign-Ins**.
    Visitors are signed in anonymously before metadata or booking access; the
    UI reports a clear error if anonymous auth is unavailable.
@@ -44,6 +45,11 @@ only slot status/counts, not other users' booking records. The unique
 instrument/date/slot constraint and booking-window trigger enforce these rules
 server-side; the client-side booking-window check is only an early UX check.
 Realtime booking events refresh availability, statistics, and the user's list.
+
+New bookings upload their completed User Form to private Supabase Storage.
+Admins download it from the booking register through the authenticated Flask
+API. Existing bookings that predate file storage have no stored file and are
+shown as unavailable.
 
 The static frontend can still be previewed through Flask:
 
@@ -89,7 +95,7 @@ variables before using it:
 The service-role key must never be placed in `static/` or exposed to the
 browser. The admin portal uses it only through the protected Flask endpoints
 under `/api/admin/bookings`, which read and modify the real Supabase
-`public.bookings` table.
+`public.bookings` table and retrieve private booking-form files from Storage.
 
 ## Booking behavior
 

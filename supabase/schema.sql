@@ -62,14 +62,92 @@ create table if not exists public.bookings (
   unique (instrument_id, date, slot)
 );
 
+alter table public.bookings
+  add column if not exists form_storage_path text;
+
 -- Keep an existing deployment compatible when this migration is re-run.
 alter table public.bookings drop constraint if exists bookings_slot_check;
 alter table public.bookings
   add constraint bookings_slot_check
   check (slot in ('09:00 - 11:00', '11:00 - 13:00', '14:00 - 16:00', '16:00 - 18:00', '18:00 - 20:00'));
 
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'bookings_form_filename_nonempty'
+      and conrelid = 'public.bookings'::regclass
+  ) then
+    alter table public.bookings
+      add constraint bookings_form_filename_nonempty
+      check (length(btrim(form_filename)) > 0) not valid;
+  end if;
+end;
+$$;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint
+    where conname = 'bookings_form_storage_path_nonempty'
+      and conrelid = 'public.bookings'::regclass
+  ) then
+    alter table public.bookings
+      add constraint bookings_form_storage_path_nonempty
+      check (
+        form_storage_path is null
+        or (
+          length(btrim(form_storage_path)) > 0
+          and split_part(form_storage_path, '/', 1) = created_by::text
+        )
+      ) not valid;
+  end if;
+end;
+$$;
+
+create or replace function public.validate_booking_form_storage_path()
+returns trigger
+language plpgsql
+set search_path = public
+as $$
+begin
+  if new.form_storage_path is null or length(btrim(new.form_storage_path)) = 0 then
+    if tg_op = 'INSERT' or old.form_storage_path is not null then
+      raise exception 'An uploaded User Form is required for every booking.';
+    end if;
+  elsif split_part(new.form_storage_path, '/', 1) <> new.created_by::text then
+    raise exception 'The uploaded User Form must belong to this booking owner.';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists bookings_validate_form_storage_path on public.bookings;
+create trigger bookings_validate_form_storage_path
+before insert or update on public.bookings
+for each row execute function public.validate_booking_form_storage_path();
+
 create index if not exists bookings_created_by_idx on public.bookings(created_by);
 create index if not exists bookings_week_idx on public.bookings(date, instrument_id, slot);
+
+insert into storage.buckets (id, name, public)
+values ('booking-user-forms', 'booking-user-forms', false)
+on conflict (id) do update set public = excluded.public;
+
+drop policy if exists booking_user_forms_insert_own on storage.objects;
+create policy booking_user_forms_insert_own on storage.objects
+  for insert to authenticated
+  with check (
+    bucket_id = 'booking-user-forms'
+    and (storage.foldername(name))[1] = (select auth.uid()::text)
+  );
+drop policy if exists booking_user_forms_delete_own on storage.objects;
+create policy booking_user_forms_delete_own on storage.objects
+  for delete to authenticated
+  using (
+    bucket_id = 'booking-user-forms'
+    and (storage.foldername(name))[1] = (select auth.uid()::text)
+  );
 
 insert into public.instruments (id, name, tagline, icon, sop, sort_order) values
   ('leica-tissue-processor', 'Leica Tissue Processor', 'Automated tissue processing', 'processor', 'sop-tissue-processing-unit.pdf', 1),

@@ -195,7 +195,11 @@ REQUIRED_FIELDS = ["user", "pi_name", "phone", "email", "specimen_type",
 
 
 def create_booking(payload):
-    missing = [f for f in REQUIRED_FIELDS if not payload.get(f)]
+    missing = [
+        f for f in REQUIRED_FIELDS
+        if not payload.get(f)
+        or (isinstance(payload.get(f), str) and not payload[f].strip())
+    ]
     if missing:
         return None, f"Missing required field(s): {', '.join(missing)}"
 

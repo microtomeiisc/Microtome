@@ -50,7 +50,9 @@ function renderPortal() {
   $("#admin-in-use").textContent = new Set(state.bookings.map((booking) => booking.instrument_id)).size;
   $("#admin-bookings-table").innerHTML = bookings.length ? bookings.map((booking) => {
     const day = fmtDay(booking.date);
-    const formAction = booking.form_filename?.startsWith(`${booking.booking_id}_`) ? `<a class="admin-form-download" href="${API}/admin/bookings/${booking.booking_id}/user-form" download>User Form</a>` : `<span class="admin-form-missing">No upload</span>`;
+    const formAction = booking.form_storage_path
+      ? `<a class="admin-form-download" href="${API}/admin/bookings/${encodeURIComponent(booking.booking_id)}/user-form">Download form</a>`
+      : `<span class="admin-form-missing">Unavailable</span>`;
     return `<tr><td><span class="booking-id">${booking.booking_id}</span><span class="table-sub">${booking.email}</span></td><td><span class="table-main">${booking.user}</span><span class="table-sub">PI: ${booking.pi_name}</span></td><td>${instrumentName(booking.instrument_id)}</td><td><span class="table-main">${day.dow}, ${day.dom} ${day.mon}</span><span class="table-sub">${booking.slot}</span></td><td><span class="admin-status">${booking.status || "booked"}</span></td><td>${formAction}</td><td class="action-cell"><button class="admin-edit" data-id="${booking.booking_id}">Edit</button><button class="admin-action" data-id="${booking.booking_id}">Cancel</button></td></tr>`;
   }).join("") : `<tr><td colspan="7" class="empty-state">No bookings match these filters.</td></tr>`;
   $("#admin-utilization").innerHTML = state.instruments.map((item) => {
